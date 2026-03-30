@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""NFD→NFC 파일명 자동 변환. Outbox 폴더 내 파일/폴더명을 NFC로 rename."""
+import os, sys, unicodedata, uuid
+from pathlib import Path
+
+def nfc(s):
+    return unicodedata.normalize("NFC", s)
+
+def rename_nfc(root):
+    root = Path(root).resolve()
+    if not root.exists():
+        return
+
+    changed = 0
+    # bottom-up으로 순회 (하위 디렉토리 먼저)
+    for dirpath, dirnames, filenames in os.walk(root, topdown=False):
+        d = Path(dirpath)
+        for name in filenames + dirnames:
+            new_name = nfc(name)
+            if new_name == name:
+                continue
+            src = d / name
+            dst = d / new_name
+            # APFS 정규화 비민감 대응: 임시이름 경유 2단계 rename
+            tmp = d / f".nfc_{uuid.uuid4().hex}"
+            try:
+                os.rename(src, tmp)
+                os.rename(tmp, dst)
+                changed += 1
+                print(f"  {name} → {new_name}")
+            except Exception as e:
+                try:
+                    if tmp.exists() and not src.exists():
+                        os.rename(tmp, src)
+                except:
+                    pass
+                print(f"  [ERR] {name}: {e}", file=sys.stderr)
+    if changed:
+        print(f"[NFC] {changed}개 파일명 변환 완료")
+
+if __name__ == "__main__":
+    for p in sys.argv[1:] or [os.path.expanduser("~/Outbox")]:
+        rename_nfc(p)
