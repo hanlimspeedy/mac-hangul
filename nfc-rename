@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 """NFD→NFC 파일명 자동 변환. Outbox 폴더 내 파일/폴더명을 NFC로 rename."""
 import os, sys, unicodedata, uuid
+from datetime import datetime
 from pathlib import Path
 
 def nfc(s):
     return unicodedata.normalize("NFC", s)
 
+def log(msg):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{ts}] {msg}", flush=True)
+
 def rename_nfc(root):
     root = Path(root).resolve()
     if not root.exists():
+        log(f"경로 없음: {root}")
         return
 
     changed = 0
@@ -27,16 +33,15 @@ def rename_nfc(root):
                 os.rename(src, tmp)
                 os.rename(tmp, dst)
                 changed += 1
-                print(f"  {name} → {new_name}")
+                log(f"  {name} → {new_name}")
             except Exception as e:
                 try:
                     if tmp.exists() and not src.exists():
                         os.rename(tmp, src)
                 except:
                     pass
-                print(f"  [ERR] {name}: {e}", file=sys.stderr)
-    if changed:
-        print(f"[NFC] {changed}개 파일명 변환 완료")
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ERR] {name}: {e}", file=sys.stderr, flush=True)
+    log(f"[NFC] {root} — 변환 {changed}개 완료")
 
 if __name__ == "__main__":
     for p in sys.argv[1:] or [os.path.expanduser("~/Outbox")]:
