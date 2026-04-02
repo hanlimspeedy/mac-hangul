@@ -30,10 +30,12 @@ cat > "$AGENT_PLIST" <<PLIST
     <array>
         <string>${INSTALL_BIN}</string>
         <string>${OUTBOX}</string>
+        <string>${HOME}/Documents</string>
     </array>
     <key>WatchPaths</key>
     <array>
         <string>${OUTBOX}</string>
+        <string>${HOME}/Documents</string>
     </array>
     <key>ThrottleInterval</key>
     <integer>3</integer>
@@ -52,7 +54,7 @@ launchctl bootstrap gui/$(id -u) "$AGENT_PLIST"
 
 echo ""
 echo "완료: mac-hangul 설치됨"
-echo "  - ~/Outbox 폴더에 파일을 넣으면 자동으로 한글 파일명이 NFC로 변환됩니다."
+echo "  - ~/Outbox, ~/Documents 폴더에 파일을 넣으면 자동으로 한글 파일명이 NFC로 변환됩니다."
 echo "  - 변환된 파일을 이메일에 첨부하면 Windows에서 정상 표시됩니다."
 echo ""
 echo "사용법:"
